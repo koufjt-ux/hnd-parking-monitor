@@ -56,6 +56,7 @@ def scrape():
         (DEBUG / "page.html").write_text(page.content(), encoding="utf-8")
         page.screenshot(path=str(DEBUG / "page.png"), full_page=True)
         n = page.evaluate("document.querySelectorAll('table').length")
+        print(page.evaluate("() => JSON.stringify({tables: document.querySelectorAll('table').length, iframes: document.querySelectorAll('iframe').length, text: document.body.innerText.slice(0,800), cal: [...document.querySelectorAll('*')].filter(e=>e.children.length===0 && /^\\d{1,2}$/.test(e.innerText.trim())).slice(10,14).map(e=>e.parentElement.parentElement.outerHTML.slice(0,600))}, null, 1)"))
         for i in range(n):
             for step in range(2):
                 d = page.evaluate(JS_SCRAPE, i)
