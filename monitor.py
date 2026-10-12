@@ -46,4 +46,65 @@ JS_NEXT = """
   if (a) { a.click(); return true; } return false;
 }
 """
+def scrape():
+    found, seen_tables = {}, 0
+    with sync_playwright() as p:
+        b = p.chromium.launch()
+        page = b.new_page(locale="ja-JP")
+        page.goto(URL, wait_until="networkidle")
+        page.wait_for_timeout(1500)
+        (DEBUG / "page.html").write_text(page.content(), encoding="utf-8")
+        page.screenshot(path=str(DEBUG / "page.png"), full_page=True)
+        n = page.evaluate("document.querySelectorAll('table').length")
+        for i in range(n):
+            for step in range(2):
+                d = page.evaluate(JS_SCRAPE, i)
+                if not d: break
+                (DEBUG / f"table{i}_{step}.html").write_text(d["html"], encoding="utf-8")
+                if d["year"] and d["month"]:
+                    seen_tables += 1
+                    for c in d["cells"]:
+                        m = re.match(r"\s*(\d{1,2})", c["text"])
+                        if not m: continue
+                        try: day = dt.date(d["year"], d["month"], int(m.group(1)))
+                        except ValueError: continue
+                        if START <= day <= END:
+                            found[f'{d["label"] or "table"+str(i)}|{day}'] = classify(c["sig"])
+                if step == 0 and not page.evaluate(JS_NEXT, i): break
+                page.wait_for_timeout(700)
+        b.close()
+    return found, seen_tables
+
+def notify(msg, title="羽田駐車場"):
+    print(msg)
+    if NTFY_TOPIC:
+        requests.post(f"https://ntfy.sh/{NTFY_TOPIC}", data=msg.encode("utf-8"),
+                      headers={"Title": title.encode("utf-8"), "Priority": "high",
+                               "Click": URL}, timeout=20)
+
+def main():
+    prev = json.loads(STATE.read_text()) if STATE.exists() else {}
+    found, tables = scrape()
+    print(json.dumps(found, ensure_ascii=False, indent=1))
+    known = {k: v for k, v in found.items() if v != "不明"}
+    new_state = {"status": found, "parse_warned": prev.get("parse_warned", False)}
+
+    if not known:
+        if not prev.get("parse_warned"):
+            notify("カレンダーの状態を読み取れませんでした。debugログの確認が必要です。", "羽田監視:要調整")
+        new_state["parse_warned"] = True
+    else:
+        targets = {"空車"} | ({"混雑"} if ALERT_ON_BUSY else set())
+        old = prev.get("status", {})
+        hits = [k for k, v in found.items() if v in targets and old.get(k) != v]
+        if hits:
+            lines = [f'{k.split("|")[1]} {k.split("|")[0]} → {found[k]}' for k in sorted(hits, key=lambda x: x.split("|")[1])]
+            notify("\n".join(lines), "羽田駐車場 空きあり!")
+        new_state["parse_warned"] = False
+
+    STATE.parent.mkdir(exist_ok=True)
+    STATE.write_text(json.dumps(new_state, ensure_ascii=False))
+
+if __name__ == "__main__":
+    main()
 
