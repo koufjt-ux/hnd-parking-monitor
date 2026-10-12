@@ -66,7 +66,7 @@ def build_map(legend):
     cnt = Counter(t for toks in legend.values() for t in set(toks))
     return {t: lb for lb, toks in legend.items() for t in toks if cnt[t] == 1}
 
-  NAME_MAP = {"ok": "空車", "konzatsu": "混雑", "full": "満車", "no": "期間外"}
+NAME_MAP = {"ok": "空車", "konzatsu": "混雑", "full": "満車", "no": "期間外"}
 
 def cell_status(cls, html, tokmap):
     toks = cls.split()
