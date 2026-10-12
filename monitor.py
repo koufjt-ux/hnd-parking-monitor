@@ -6,7 +6,7 @@ import requests
 from playwright.sync_api import sync_playwright
 
 URL = os.environ.get("TARGET_URL", "https://hnd-rsv.aeif.or.jp/airport2/app/toppage")
-START, END = dt.date(2026, 10, 24), dt.date(2026, 11, 1)
+START, END = dt.date(2026, 10, 31), dt.date(2026, 11, 1)
 NTFY_TOPIC = os.environ.get("NTFY_TOPIC", "")
 ALERT_ON_BUSY = os.environ.get("ALERT_ON_BUSY", "false").lower() == "true"
 STATE = Path("state/state.json")
