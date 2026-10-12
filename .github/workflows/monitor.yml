@@ -1,6 +1,6 @@
 {
  "name": "hnd-parking-monitor",
- "on": {"schedule": [{"cron": "*/0.5 * * * *"}], "workflow_dispatch": {}},
+ "on": {"schedule": [{"cron": "*/1 * * * *"}], "workflow_dispatch": {}},
  "concurrency": "hnd-monitor",
  "jobs": {"check": {"runs-on": "ubuntu-24.04", "timeout-minutes": 10, "steps": [
   {"uses": "actions/checkout@v4"},
