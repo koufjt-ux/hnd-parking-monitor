@@ -66,8 +66,12 @@ def build_map(legend):
     cnt = Counter(t for toks in legend.values() for t in set(toks))
     return {t: lb for lb, toks in legend.items() for t in toks if cnt[t] == 1}
 
+  NAME_MAP = {"ok": "空車", "konzatsu": "混雑", "full": "満車", "no": "期間外"}
+
 def cell_status(cls, html, tokmap):
-    hits = {tokmap[t] for t in cls.split() if t in tokmap}
+    toks = cls.split()
+    hits = {tokmap[t] for t in toks if t in tokmap} | {NAME_MAP[t] for t in toks if t in NAME_MAP}
+
     if len(hits) == 1: return hits.pop()
     k = classify(html)
     if k != "不明": return k
@@ -115,7 +119,10 @@ def notify(msg, title="羽田駐車場"):
 
 def main():
     prev = json.loads(STATE.read_text()) if STATE.exists() else {}
-    found = scrape()
+      found = scrape()
+    if os.environ.get("INCLUDE_DISABLED", "false").lower() != "true":
+        found = {k: v for k, v in found.items() if "身障者" not in k}
+
     known = {k: v for k, v in found.items() if v in ("空車", "混雑", "満車")}
     new_state = {"status": found, "parse_warned": prev.get("parse_warned", False)}
 
