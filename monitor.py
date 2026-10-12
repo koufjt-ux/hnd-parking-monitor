@@ -119,7 +119,7 @@ def notify(msg, title="羽田駐車場"):
 
 def main():
     prev = json.loads(STATE.read_text()) if STATE.exists() else {}
-      found = scrape()
+    found = scrape()
     if os.environ.get("INCLUDE_DISABLED", "false").lower() != "true":
         found = {k: v for k, v in found.items() if "身障者" not in k}
 
