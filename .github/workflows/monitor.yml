@@ -1,13 +1,13 @@
 {
  "name": "hnd-parking-monitor",
- "on": {"schedule": [{"cron": "*/20 * * * *"}], "workflow_dispatch": {}},
+ "on": {"schedule": [{"cron": "*/5 * * * *"}], "workflow_dispatch": {}},
  "concurrency": "hnd-monitor",
  "jobs": {"check": {"runs-on": "ubuntu-24.04", "timeout-minutes": 10, "steps": [
   {"uses": "actions/checkout@v4"},
   {"uses": "actions/setup-python@v5", "with": {"python-version": "3.12"}},
   {"run": "pip install playwright requests && playwright install --with-deps chromium"},
   {"name": "restore", "uses": "actions/cache/restore@v4", "with": {"path": "state", "key": "state-${{ github.run_id }}", "restore-keys": "state-"}},
-  {"run": "python monitor.py", "env": {"NTFY_TOPIC": "${{ secrets.NTFY_TOPIC }}", "ALERT_ON_BUSY": "false"}},
+  {"run": "python monitor.py", "env": {"NTFY_TOPIC": "${{ secrets.NTFY_TOPIC }}", "ALERT_ON_BUSY": "true"}},
   {"name": "save", "if": "always()", "uses": "actions/cache/save@v4", "with": {"path": "state", "key": "state-${{ github.run_id }}"}},
   {"name": "debug", "if": "always()", "uses": "actions/upload-artifact@v4", "with": {"name": "debug", "path": "debug", "retention-days": 3}}
  ]}}
