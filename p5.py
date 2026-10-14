@@ -6,8 +6,7 @@ import requests
 from playwright.sync_api import sync_playwright
 
 URL = os.environ.get("TARGET_URL", "https://pk-reserve.haneda-airport.jp/airport/entrance/0000.jsf")
-TARGETS = {dt.date(2026, 10, 24), dt.date(2026, 10, 25), dt.date(2026, 10, 26),
-           dt.date(2026, 10, 27), dt.date(2026, 11, 1)}
+TARGETS = { dt.date(2026, 10, 25), dt.date(2026, 11, 1)}
 NTFY_TOPIC = os.environ.get("NTFY_TOPIC", "")
 STATE = Path("state5/state.json")
 DEBUG = Path("debug5"); DEBUG.mkdir(exist_ok=True)
